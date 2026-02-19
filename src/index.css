@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-academic-blue: #003366;
+  --color-academic-green: #006633;
+  --color-academic-gold: #D4AF37;
+  
+  --font-display: "Inter", "system-ui", "sans-serif";
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-family: var(--font-display);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-academic-blue text-white px-6 py-2 rounded-lg font-semibold transition-all hover:bg-blue-900 active:scale-95;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-xl rounded-2xl;
+  }
+}
