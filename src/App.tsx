@@ -11,7 +11,12 @@ import { GraduationCap, Search, Sparkles, BookMarked, Target, Clock, ShieldCheck
 import { motion, AnimatePresence } from 'motion/react';
 
 function App() {
-  const [profile, setProfile] = useState<{ fullName: string; email: string } | null>(null);
+  const [profile, setProfile] = useState<{ fullName: string; email: string } | null>(() => {
+    try {
+      const saved = localStorage.getItem('scholartrack_session');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
@@ -19,12 +24,26 @@ function App() {
   const [showSignIn, setShowSignIn] = useState(false);
   const [academicProfile, setAcademicProfile] = useState<StudentProfile | null>(null);
   const [activeDetailedSection, setActiveDetailedSection] = useState<'personal' | 'additional' | 'olevel' | 'undergraduate'>('personal');
-  const [view, setView] = useState<'landing' | 'scholarships' | 'results' | 'deadlines' | 'profile' | 'mydetails' | 'saved'>('landing');
+  const [view, setView] = useState<'landing' | 'scholarships' | 'results' | 'deadlines' | 'profile' | 'mydetails' | 'saved'>(() => {
+    try {
+      const saved = localStorage.getItem('scholartrack_session');
+      return saved ? 'scholarships' : 'landing';
+    } catch { return 'landing'; }
+  });
+  const [categoryFilter, setCategoryFilter] = useState<'All' | 'Secondary' | 'Undergraduate' | 'Masters'>('All');
 
   const handleSignIn = (data: { fullName: string; email: string }) => {
     setProfile(data);
     setShowSignIn(false);
-    setView('mydetails');
+    setView('scholarships');
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('scholartrack_session');
+    setProfile(null);
+    setAcademicProfile(null);
+    setMatches([]);
+    setView('landing');
   };
 
   const runMatching = async (details: StudentProfile) => {
@@ -266,20 +285,38 @@ function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <div className="mb-12">
+              <div className="mb-8">
                 <h2 className="text-3xl font-bold text-slate-900 font-serif">Browse Available Scholarships</h2>
-                <p className="mt-2 text-slate-500">Explore {MOCK_SCHOLARSHIPS.length} scholarships — save the ones you're interested in to track their deadlines.</p>
               </div>
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {MOCK_SCHOLARSHIPS.map((s) => (
-                  <ScholarshipCard
-                    key={s.id}
-                    scholarship={s}
-                    isSaved={savedIds.has(s.id)}
-                    onToggleSave={toggleSave}
-                    onViewDetails={setSelectedScholarship}
-                  />
+
+              {/* Category Filter */}
+              <div className="mb-8 flex flex-wrap gap-2">
+                {(['All', 'Secondary', 'Undergraduate', 'Masters'] as const).map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${categoryFilter === cat
+                        ? 'bg-academic-blue text-white shadow-md'
+                        : 'bg-white text-slate-600 border border-slate-200 hover:border-academic-blue/40 hover:text-academic-blue'
+                      }`}
+                  >
+                    {cat === 'Masters' ? 'Postgraduate' : cat}
+                  </button>
                 ))}
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {MOCK_SCHOLARSHIPS
+                  .filter(s => categoryFilter === 'All' || s.eligibleLevel.includes(categoryFilter))
+                  .map((s) => (
+                    <ScholarshipCard
+                      key={s.id}
+                      scholarship={s}
+                      isSaved={savedIds.has(s.id)}
+                      onToggleSave={toggleSave}
+                      onViewDetails={setSelectedScholarship}
+                    />
+                  ))}
               </div>
             </motion.section>
           )}
@@ -458,7 +495,7 @@ function App() {
                   <h3 className="text-xl font-bold text-slate-900">{profile.fullName}</h3>
                   <p className="text-slate-500">{profile.email}</p>
                 </div>
-                <Button variant="outline" className="mt-8 w-full" onClick={() => { setProfile(null); setView('landing'); }}>
+                <Button variant="outline" className="mt-8 w-full" onClick={handleSignOut}>
                   Sign Out
                 </Button>
               </div>
