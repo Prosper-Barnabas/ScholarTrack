@@ -1,7 +1,7 @@
 import type { Scholarship } from '../types';
 import { Card } from './Card';
 import { Button } from './Button';
-import { MapPin, Calendar, Building2, GraduationCap, Bookmark, BookmarkCheck } from 'lucide-react';
+import { MapPin, Calendar, Building2, GraduationCap, Bookmark, BookmarkCheck, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 
@@ -86,9 +86,27 @@ export function ScholarshipCard({
         </div>
 
         {matchInfo && (
-          <div className="mb-6 rounded-lg bg-emerald-50 p-3 text-xs text-emerald-800">
-            <p className="font-bold uppercase tracking-wider text-emerald-600">{matchInfo.priority}</p>
-            <p className="mt-1 leading-relaxed">{matchInfo.reason}</p>
+          <div className="mb-6 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 transition-all">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Why You Match</p>
+              <div className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                <Sparkles className="h-2.5 w-2.5" />
+                <span>{matchInfo.priority}</span>
+              </div>
+            </div>
+            <p className="text-xs leading-relaxed text-emerald-800">
+              {matchInfo.reason}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+                <div className="h-1 w-1 rounded-full bg-emerald-400" />
+                Academic Background
+              </span>
+              <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+                <div className="h-1 w-1 rounded-full bg-emerald-400" />
+                Level Compatibility
+              </span>
+            </div>
           </div>
         )}
 

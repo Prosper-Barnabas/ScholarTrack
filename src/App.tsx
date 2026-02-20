@@ -7,7 +7,7 @@ import { SignInModal } from './components/SignInModal';
 import { ScholarshipCard } from './components/ScholarshipCard';
 import { ScholarshipDetail } from './components/ScholarshipDetail';
 import { Button } from './components/Button';
-import { GraduationCap, Search, Sparkles, BookMarked, Target, Clock, ShieldCheck, Users, BookOpen, Globe, ChevronRight, Mail, User, Library, ClipboardEdit } from 'lucide-react';
+import { GraduationCap, Search, Sparkles, BookMarked, Target, Clock, ShieldCheck, Users, BookOpen, Globe, ChevronRight, Mail, User, Library, ClipboardEdit, CalendarPlus, MessageCircle, Bell, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 function App() {
@@ -22,7 +22,17 @@ function App() {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [isMatching, setIsMatching] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
-  const [academicProfile, setAcademicProfile] = useState<StudentProfile | null>(null);
+  const [academicProfile, setAcademicProfile] = useState<StudentProfile | null>(() => {
+    try {
+      const session = localStorage.getItem('scholartrack_session');
+      if (session) {
+        const { email } = JSON.parse(session);
+        const saved = localStorage.getItem(`scholartrack_profile_${email}`);
+        return saved ? JSON.parse(saved) : null;
+      }
+      return null;
+    } catch { return null; }
+  });
   const [activeDetailedSection, setActiveDetailedSection] = useState<'personal' | 'additional' | 'olevel' | 'undergraduate'>('personal');
   const [view, setView] = useState<'landing' | 'scholarships' | 'results' | 'deadlines' | 'profile' | 'mydetails' | 'saved'>(() => {
     try {
@@ -31,11 +41,28 @@ function App() {
     } catch { return 'landing'; }
   });
   const [categoryFilter, setCategoryFilter] = useState<'All' | 'Secondary' | 'Undergraduate' | 'Masters'>('All');
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useState(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  });
 
   const handleSignIn = (data: { fullName: string; email: string }) => {
     setProfile(data);
     setShowSignIn(false);
     setView('scholarships');
+
+    // Load persisted profile for this user
+    try {
+      const saved = localStorage.getItem(`scholartrack_profile_${data.email}`);
+      if (saved) {
+        setAcademicProfile(JSON.parse(saved));
+      } else {
+        setAcademicProfile(null);
+      }
+    } catch { setAcademicProfile(null); }
   };
 
   const handleSignOut = () => {
@@ -108,6 +135,32 @@ function App() {
   const savedScholarships = useMemo(() => {
     return MOCK_SCHOLARSHIPS.filter(s => savedIds.has(s.id));
   }, [savedIds]);
+
+  const getGoogleCalendarUrl = (s: Scholarship) => {
+    const deadline = new Date(s.deadline);
+    const dateStr = deadline.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const nextDay = new Date(deadline);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const endStr = nextDay.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const title = encodeURIComponent(`📋 ${s.name} — Application Deadline`);
+    const details = encodeURIComponent(`Scholarship: ${s.name}\nSponsor: ${s.sponsor}\nLocation: ${s.location}\n\nApply here: ${s.applicationLink}\n\nReminder set via ScholarTrack`);
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateStr}/${endStr}&details=${details}`;
+  };
+
+  const getWhatsAppUrl = (s: Scholarship) => {
+    const deadline = new Date(s.deadline);
+    const diffDays = Math.ceil((deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    const msg = encodeURIComponent(
+      `🎓 *Scholarship Reminder*\n\n` +
+      `📌 *${s.name}*\n` +
+      `🏢 Sponsor: ${s.sponsor}\n` +
+      `📍 Location: ${s.location}\n` +
+      `📅 Deadline: ${deadline.toLocaleDateString('en-NG', { month: 'long', day: 'numeric', year: 'numeric' })}` +
+      (diffDays > 0 ? ` (${diffDays} days left)` : ' (Expired)') +
+      `\n\n🔗 Apply: ${s.applicationLink}\n\n_Sent via ScholarTrack_`
+    );
+    return `https://wa.me/?text=${msg}`;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -261,6 +314,31 @@ function App() {
                 </div>
               </div>
 
+              {/* How It Works */}
+              <div>
+                <div className="mb-12 text-center">
+                  <p className="mb-2 text-sm font-bold uppercase tracking-widest text-academic-blue">How It Works</p>
+                  <h3 className="text-2xl font-bold text-slate-900 md:text-3xl">Your Scholarship in 4 Simple Steps</h3>
+                </div>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+                  {[
+                    { step: '01', icon: User, title: 'Create Your Profile', desc: 'Sign up and fill in your academic details — name, level of study, GPA, field, and location.' },
+                    { step: '02', icon: Search, title: 'Browse Scholarships', desc: 'Explore our database of 20+ verified scholarships from top Nigerian and international sponsors.' },
+                    { step: '03', icon: Sparkles, title: 'Get AI Matches', desc: 'Our AI engine analyzes your profile and ranks scholarships by how well they fit your background.' },
+                    { step: '04', icon: Clock, title: 'Apply & Track', desc: 'Save your top picks, set Google Calendar reminders, and share deadlines via WhatsApp — never miss a deadline.' }
+                  ].map((item, i) => (
+                    <div key={i} className="relative flex flex-col items-center text-center p-6 rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+                      <div className="mb-3 text-4xl font-black text-academic-blue/10">{item.step}</div>
+                      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-academic-blue text-white shadow-md">
+                        <item.icon className="h-7 w-7" />
+                      </div>
+                      <h4 className="mb-2 text-lg font-bold text-slate-900">{item.title}</h4>
+                      <p className="text-sm leading-relaxed text-slate-500">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* CTA */}
               <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-lg sm:rounded-3xl sm:p-10 md:p-16">
                 <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-academic-blue text-white shadow-lg">
@@ -286,7 +364,7 @@ function App() {
               exit={{ opacity: 0 }}
             >
               <div className="mb-8">
-                <h2 className="text-3xl font-bold text-slate-900 font-serif">Browse Available Scholarships</h2>
+                <h2 className="text-3xl font-bold text-slate-900 font-serif tracking-tight md:text-4xl">Browse Available Scholarships</h2>
               </div>
 
               {/* Category Filter */}
@@ -296,8 +374,8 @@ function App() {
                     key={cat}
                     onClick={() => setCategoryFilter(cat)}
                     className={`rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 ${categoryFilter === cat
-                        ? 'bg-academic-blue text-white shadow-md'
-                        : 'bg-white text-slate-600 border border-slate-200 hover:border-academic-blue/40 hover:text-academic-blue'
+                      ? 'bg-academic-blue text-white shadow-md'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-academic-blue/40 hover:text-academic-blue'
                       }`}
                   >
                     {cat === 'Masters' ? 'Postgraduate' : cat}
@@ -329,9 +407,9 @@ function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <div className="mb-12">
-                <h2 className="text-3xl font-bold text-slate-900 font-serif">Scholarship Deadline Tracker</h2>
-                <p className="mt-2 text-slate-500">Stay organized and never miss an application deadline.</p>
+              <div className="mb-10">
+                <h2 className="text-3xl font-bold text-slate-900 font-serif tracking-tight md:text-4xl">Deadline Tracker</h2>
+                <p className="mt-2 text-slate-500">Track deadlines, set reminders on Google Calendar, and share via WhatsApp.</p>
               </div>
 
               {savedScholarships.length === 0 ? (
@@ -344,128 +422,178 @@ function App() {
                   <Button className="mt-8" onClick={() => setView('scholarships')}>Browse Scholarships</Button>
                 </div>
               ) : (
-                <div className="space-y-12">
-                  {/* Categorize Scholarships */}
+                <div className="space-y-10">
+                  {/* Summary Stats */}
+                  {(() => {
+                    const now = new Date();
+                    const urgentCount = savedScholarships.filter(s => { const d = Math.ceil((new Date(s.deadline).getTime() - now.getTime()) / 86400000); return d > 0 && d <= 14; }).length;
+                    const upcomingCount = savedScholarships.filter(s => Math.ceil((new Date(s.deadline).getTime() - now.getTime()) / 86400000) > 14).length;
+                    const expiredCount = savedScholarships.filter(s => Math.ceil((new Date(s.deadline).getTime() - now.getTime()) / 86400000) <= 0).length;
+                    return (
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="rounded-xl border border-red-100 bg-red-50/50 p-4 text-center">
+                          <p className="text-2xl font-bold text-red-600">{urgentCount}</p>
+                          <p className="text-xs font-semibold text-red-500 uppercase tracking-wider mt-1">Urgent</p>
+                        </div>
+                        <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
+                          <p className="text-2xl font-bold text-academic-blue">{upcomingCount}</p>
+                          <p className="text-xs font-semibold text-academic-blue uppercase tracking-wider mt-1">Upcoming</p>
+                        </div>
+                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                          <p className="text-2xl font-bold text-slate-400">{expiredCount}</p>
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mt-1">Expired</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Categorized Deadlines */}
                   {(() => {
                     const categorized = savedScholarships.reduce((acc, s) => {
-                      const deadline = new Date(s.deadline);
-                      const today = new Date();
-                      const diffDays = Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-
+                      const diffDays = Math.ceil((new Date(s.deadline).getTime() - new Date().getTime()) / 86400000);
                       if (diffDays <= 0) acc.past.push(s);
                       else if (diffDays <= 14) acc.urgent.push(s);
                       else acc.upcoming.push(s);
                       return acc;
                     }, { urgent: [] as Scholarship[], upcoming: [] as Scholarship[], past: [] as Scholarship[] });
 
+                    const renderDeadlineCard = (s: Scholarship, variant: 'urgent' | 'upcoming' | 'past') => {
+                      const deadline = new Date(s.deadline);
+                      const diffTime = deadline.getTime() - currentTime.getTime();
+                      const diffDays = Math.ceil(diffTime / 86400000);
+                      const pctElapsed = variant === 'urgent' ? Math.max(0, Math.min(100, ((14 - diffDays) / 14) * 100)) : 0;
+
+                      const getTimeLeft = () => {
+                        if (diffTime <= 0) return "Expired";
+                        const d = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        const h = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const m = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((diffTime % (1000 * 60)) / 1000);
+                        return `${d}d ${h}h ${m}m ${s}s`;
+                      };
+
+                      return (
+                        <Card
+                          key={s.id}
+                          className={`relative overflow-hidden transition-all hover:shadow-lg ${variant === 'urgent'
+                            ? 'border-red-300 bg-gradient-to-r from-red-50/60 to-white ring-2 ring-red-500/10 animate-pulse-subtle'
+                            : variant === 'past'
+                              ? 'border-slate-200 bg-slate-50 opacity-70'
+                              : 'border-slate-200 bg-white'
+                            }`}
+                        >
+                          <div className={`absolute top-0 left-0 w-1 h-full ${variant === 'urgent' ? 'bg-red-500' : variant === 'past' ? 'bg-slate-300' : 'bg-academic-blue'}`} />
+
+                          <div className="space-y-4">
+                            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-lg font-bold text-slate-900 leading-tight">{s.name}</h4>
+                                <p className="text-sm text-slate-500 mt-0.5">{s.sponsor}</p>
+                              </div>
+                              <div className={`rounded-lg px-3 py-1.5 text-center flex-shrink-0 ${variant === 'urgent'
+                                ? 'bg-red-100 border border-red-200'
+                                : variant === 'past'
+                                  ? 'bg-slate-100 border border-slate-200'
+                                  : 'bg-blue-50 border border-blue-100'
+                                }`}>
+                                <p className={`text-sm font-bold ${variant === 'urgent' ? 'text-red-700' : variant === 'past' ? 'text-slate-400' : 'text-academic-blue'}`}>
+                                  {deadline.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' })}
+                                </p>
+                                <p className={`text-[10px] font-bold font-mono ${variant === 'urgent' ? 'text-red-500' : variant === 'past' ? 'text-slate-400' : 'text-blue-400'}`}>
+                                  {getTimeLeft()}
+                                </p>
+                              </div>
+                            </div>
+
+                            {variant === 'urgent' && (
+                              <div className="space-y-1">
+                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-red-500">
+                                  <span>Time Elapsed</span>
+                                  <span>{diffDays} days remaining</span>
+                                </div>
+                                <div className="h-2 w-full bg-red-100 rounded-full overflow-hidden">
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${pctElapsed}%` }}
+                                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                                    className="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full"
+                                  />
+                                </div>
+                              </div>
+                            )}
+
+                            {variant !== 'past' ? (
+                              <div className="flex flex-wrap gap-2 pt-1">
+                                <a href={getGoogleCalendarUrl(s)} target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 hover:shadow-md">
+                                  <CalendarPlus className="h-3.5 w-3.5" /> Google Calendar
+                                </a>
+                                <a href={getWhatsAppUrl(s)} target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-green-300 hover:bg-green-50 hover:text-green-700 hover:shadow-md">
+                                  <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+                                </a>
+                                <a href={s.applicationLink} target="_blank" rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-academic-blue hover:bg-academic-blue/5 hover:text-academic-blue hover:shadow-md">
+                                  <ExternalLink className="h-3.5 w-3.5" /> Apply Now
+                                </a>
+                                <button onClick={() => setSelectedScholarship(s)}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 hover:shadow-md">
+                                  <BookOpen className="h-3.5 w-3.5" /> Details
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex gap-2 pt-1">
+                                <button onClick={() => setSelectedScholarship(s)}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500 shadow-sm hover:bg-slate-100">
+                                  <BookOpen className="h-3.5 w-3.5" /> Review
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </Card>
+                      );
+                    };
+
                     return (
                       <>
-                        {/* Urgent Section */}
                         {categorized.urgent.length > 0 && (
-                          <div className="space-y-6">
-                            <div className="flex items-center gap-2 border-b border-red-100 pb-2">
-                              <Target className="h-5 w-5 text-red-500" />
-                              <h3 className="text-xl font-bold text-red-700">Urgent Deadlines (Next 14 Days)</h3>
-                            </div>
-                            <div className="grid gap-6">
-                              {categorized.urgent.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()).map(s => {
-                                const diffDays = Math.ceil((new Date(s.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                                const pctRemaining = Math.max(0, Math.min(100, (diffDays / 60) * 100)); // Scaled to 60 days
-
-                                return (
-                                  <Card key={s.id} className="relative overflow-hidden group hover:shadow-lg transition-all border-red-100 bg-red-50/30">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                      <div className="flex-1 space-y-3">
-                                        <div>
-                                          <h4 className="text-lg font-bold text-slate-900 leading-tight">{s.name}</h4>
-                                          <p className="text-sm text-slate-500 font-medium">{s.sponsor}</p>
-                                        </div>
-                                        <div className="space-y-1.5 w-full max-w-md">
-                                          <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-red-600">
-                                            <span>Time Remaining</span>
-                                            <span>{diffDays} days</span>
-                                          </div>
-                                          <div className="h-2 w-full bg-red-100 rounded-full overflow-hidden">
-                                            <motion.div
-                                              initial={{ width: 0 }}
-                                              animate={{ width: `${100 - pctRemaining}%` }}
-                                              className="h-full bg-red-500 rounded-full"
-                                            />
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-4">
-                                        <div className="text-right hidden sm:block">
-                                          <p className="text-sm font-bold text-slate-900">{new Date(s.deadline).toLocaleDateString('en-NG', { month: 'long', day: 'numeric' })}</p>
-                                          <p className="text-xs text-red-500 font-semibold italic">Action Required ASAP</p>
-                                        </div>
-                                        <Button size="sm" className="bg-red-600 hover:bg-red-700 shadow-sm" onClick={() => setSelectedScholarship(s)}>Manage</Button>
-                                      </div>
-                                    </div>
-                                  </Card>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Upcoming Section */}
-                        {categorized.upcoming.length > 0 && (
-                          <div className="space-y-6">
-                            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                              <ShieldCheck className="h-5 w-5 text-academic-blue" />
-                              <h3 className="text-xl font-bold text-slate-800">Upcoming Opportunities</h3>
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100">
+                                <Bell className="h-4 w-4 text-red-600" />
+                              </div>
+                              <h3 className="text-lg font-bold text-red-700">Urgent — Action Required</h3>
                             </div>
                             <div className="grid gap-4">
-                              {categorized.upcoming.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()).map(s => {
-                                const diffDays = Math.ceil((new Date(s.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                                return (
-                                  <div key={s.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-xl border border-slate-200 bg-white hover:border-academic-blue hover:shadow-md transition-all group">
-                                    <div className="flex gap-4">
-                                      <div className="h-10 w-10 flex-shrink-0 bg-slate-50 flex items-center justify-center rounded-lg group-hover:bg-academic-blue/5 transition-colors">
-                                        <BookMarked className="h-5 w-5 text-slate-400 group-hover:text-academic-blue" />
-                                      </div>
-                                      <div>
-                                        <h4 className="font-bold text-slate-900">{s.name}</h4>
-                                        <div className="flex items-center gap-2 mt-1">
-                                          <span className="text-xs text-slate-500">{s.sponsor}</span>
-                                          <span className="h-1 w-1 bg-slate-300 rounded-full" />
-                                          <span className="text-xs font-bold text-academic-blue italic">{diffDays} days left</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center justify-between sm:justify-start gap-4">
-                                      <span className="text-sm font-semibold text-slate-600 sm:hidden">Deadline: {new Date(s.deadline).toLocaleDateString()}</span>
-                                      <div className="hidden sm:block text-right">
-                                        <p className="text-sm font-bold text-slate-700">{new Date(s.deadline).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                                      </div>
-                                      <Button variant="outline" size="sm" onClick={() => setSelectedScholarship(s)}>Details</Button>
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                              {categorized.urgent.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()).map(s => renderDeadlineCard(s, 'urgent'))}
                             </div>
                           </div>
                         )}
 
-                        {/* Past Section */}
+                        {categorized.upcoming.length > 0 && (
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+                                <Clock className="h-4 w-4 text-academic-blue" />
+                              </div>
+                              <h3 className="text-lg font-bold text-slate-800">Upcoming Deadlines</h3>
+                            </div>
+                            <div className="grid gap-4">
+                              {categorized.upcoming.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime()).map(s => renderDeadlineCard(s, 'upcoming'))}
+                            </div>
+                          </div>
+                        )}
+
                         {categorized.past.length > 0 && (
-                          <div className="space-y-6 pt-6 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
-                            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                              <Search className="h-5 w-5 text-slate-400" />
-                              <h3 className="text-lg font-bold text-slate-500">Expired Deadlines</h3>
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
+                                <Search className="h-4 w-4 text-slate-400" />
+                              </div>
+                              <h3 className="text-lg font-bold text-slate-500">Expired</h3>
                             </div>
                             <div className="grid gap-3">
-                              {categorized.past.map(s => (
-                                <div key={s.id} className="flex items-center justify-between p-4 rounded-lg bg-slate-100 border border-slate-200">
-                                  <div className="min-w-0">
-                                    <h4 className="text-sm font-bold text-slate-600 truncate">{s.name}</h4>
-                                    <p className="text-xs text-slate-400">Ended {new Date(s.deadline).toLocaleDateString()}</p>
-                                  </div>
-                                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setSelectedScholarship(s)}>Review</Button>
-                                </div>
-                              ))}
+                              {categorized.past.map(s => renderDeadlineCard(s, 'past'))}
                             </div>
                           </div>
                         )}
@@ -512,7 +640,7 @@ function App() {
               className="mx-auto max-w-6xl"
             >
               <div className="mb-8">
-                <h2 className="text-3xl font-bold text-slate-900 font-serif">Academic Profile Explorer</h2>
+                <h2 className="text-3xl font-bold text-slate-900 font-serif tracking-tight md:text-4xl">Academic Profile Explorer</h2>
                 <p className="mt-2 text-slate-500">Complete all sections to unlock more accurate scholarship matches.</p>
               </div>
 
@@ -622,7 +750,12 @@ function App() {
                         interestedLocation: 'Nigeria',
                         financialNeed: 'Medium'
                       };
-                      runMatching(updatedDetails);
+                      setAcademicProfile(updatedDetails);
+                      if (profile?.email) {
+                        localStorage.setItem(`scholartrack_profile_${profile.email}`, JSON.stringify(updatedDetails));
+                      }
+                      setSaveSuccess(true);
+                      setTimeout(() => setSaveSuccess(false), 3000);
                     }}
                     className="space-y-6"
                   >
@@ -634,6 +767,23 @@ function App() {
                         <Sparkles className="h-4 w-4 text-academic-gold" /> Update & Save
                       </Button>
                     </div>
+
+                    <AnimatePresence>
+                      {saveSuccess && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm"
+                        >
+                          <ShieldCheck className="h-5 w-5 text-emerald-500 flex-shrink-0" />
+                          {activeDetailedSection === 'personal' ? 'Personal Details' :
+                            activeDetailedSection === 'additional' ? 'Additional Information' :
+                              activeDetailedSection === 'olevel' ? "O'Level Details" :
+                                'Undergraduate Section'} updated successfully!
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     <AnimatePresence mode="wait">
                       {activeDetailedSection === 'personal' && (
@@ -814,9 +964,14 @@ function App() {
             >
               <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                  <h2 className="text-3xl font-bold">Recommended for You</h2>
+                  <h2 className="text-3xl font-bold text-slate-900 font-serif tracking-tight md:text-4xl">Recommended for You</h2>
                   <p className="mt-2 text-slate-500">Top scholarships based on your profile</p>
                 </div>
+                {academicProfile && !isMatching && (
+                  <Button className="gap-2" onClick={() => runMatching(academicProfile)}>
+                    <Sparkles className="h-4 w-4" /> Find My Matches
+                  </Button>
+                )}
               </div>
 
               {isMatching ? (
@@ -921,9 +1076,19 @@ function App() {
             <div>
               <h4 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">Platform</h4>
               <ul className="space-y-3">
-                {['Find Scholarships', 'Create Profile', 'Deadline Tracker', 'Saved List'].map(link => (
-                  <li key={link}>
-                    <button className="text-sm text-slate-300 transition-colors hover:text-white">{link}</button>
+                {[
+                  { label: 'Find Scholarships', action: () => setView('scholarships') },
+                  { label: 'Create Profile', action: handleGetStarted },
+                  { label: 'Deadline Tracker', action: () => setView('deadlines') },
+                  { label: 'Saved List', action: () => setView('saved') }
+                ].map(item => (
+                  <li key={item.label}>
+                    <button
+                      onClick={item.action}
+                      className="text-sm text-slate-300 transition-colors hover:text-white"
+                    >
+                      {item.label}
+                    </button>
                   </li>
                 ))}
               </ul>
