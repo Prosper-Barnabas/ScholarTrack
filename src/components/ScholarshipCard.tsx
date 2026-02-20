@@ -94,7 +94,7 @@ export function ScholarshipCard({
 
         <Button
           variant="outline"
-          className="w-full group-hover:bg-academic-blue group-hover:text-white"
+          className="w-full border-academic-blue/20 text-academic-blue transition-all duration-200 hover:bg-academic-blue hover:text-white hover:shadow-md"
           onClick={() => onViewDetails(scholarship)}
         >
           View Details

@@ -1,8 +1,8 @@
 import { cn } from '../lib/utils';
 
-export function Input({ label, error, ...props }: { label?: string; error?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ label, error, className, ...props }: { label?: string; error?: string; className?: string } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div className="space-y-1.5">
+    <div className={cn('space-y-1.5', className)}>
       {label && <label className="text-sm font-medium text-slate-700">{label}</label>}
       <input
         className={cn(

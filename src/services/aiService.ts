@@ -11,34 +11,35 @@ export async function getScholarshipMatches(
     Analyze this student profile against the provided list of scholarships and return the top 5 best matches.
     
     Student Profile:
-    - Name: ${profile.fullName}
-    - Level: ${profile.levelOfStudy}
-    - Field: ${profile.fieldOfStudy}
-    - GPA: ${profile.gpa}
-    - State: ${profile.stateOfOrigin}
-    - Location Preference: ${profile.interestedLocation}
-    - Financial Need: ${profile.financialNeed}
+    - Name: ${profile.firstName} ${profile.middleName ? profile.middleName + ' ' : ''}${profile.surname}
+    - Location: ${profile.countryOfResidence}, ${profile.stateOfResidence}
+    - Origin: ${profile.stateOfOrigin}, ${profile.lgaOfOrigin} (${profile.communityHometown})
+    - Academic Status: ${profile.undergraduateDetails.currentLevel} student at ${profile.undergraduateDetails.institutionName}
+    - Course: ${profile.undergraduateDetails.courseOfStudy}
+    - CGPA: ${profile.undergraduateDetails.currentCgpa} on a ${profile.undergraduateDetails.cgpaScale} scale
+    - O'Level Maths/English: ${profile.olevelDetails.mathematics}/${profile.olevelDetails.english}
+    - Other Details: On scholarship? ${profile.onScholarshipBursary ? 'Yes' : 'No'}, Disability? ${profile.hasPhysicalDisability ? 'Yes' : 'No'}, Siblings: ${profile.numberOfSiblings}
     
     Scholarships:
     ${scholarships.map(s => `
       ID: ${s.id}
       Name: ${s.name}
-      Levels: ${s.eligibleLevel.join(', ')}
+      Sponsor: ${s.sponsor}
+      Eligible Levels: ${s.eligibleLevel.join(', ')}
       Location: ${s.location}
-      Eligibility: ${s.eligibility.join('; ')}
+      Eligibility Criteria: ${s.eligibility.join('; ')}
     `).join('\n')}
     
     Score based on:
-    - Level match (Crucial)
-    - Field relevance
-    - GPA requirement
-    - Location preference
-    - Financial need
+    - Level and Course match
+    - GPA/Academic performance
+    - State of origin / Location eligibility
+    - Specific criteria (disability, need, etc.)
     
     Return a JSON array of exactly 5 objects with:
     - scholarshipId (string)
     - matchPercentage (number, 0-100)
-    - reason (2-3 sentences explanation. IMPORTANT: You MUST explicitly mention specific details from the student's profile—such as their GPA, field of study, level of study, or state of origin—that directly contributed to this match.)
+    - reason (2-3 sentences explanation. IMPORTANT: You MUST cite specific details from the profile like their state of origin, GPA, or course of study to justify the match.)
     - priority (High Fit, Moderate Fit, or Stretch)
   `;
 

@@ -173,5 +173,184 @@ export const MOCK_SCHOLARSHIPS: Scholarship[] = [
     ],
     documents: ['University ID', 'Admission Letter', 'Current Transcript', 'O-Level Result'],
     applicationLink: 'https://seplatpetroleum.com/sustainability/social-investment/'
-  }
+  },
+  {
+    id: '11',
+    name: 'Total/NNPC National Merit Scholarship',
+    sponsor: 'TotalEnergies / NNPC',
+    location: 'Nigeria',
+    eligibleLevel: ['Undergraduate'],
+    deadline: '2026-05-30',
+    description: 'Annual scholarship for Nigerian undergraduates studying in Nigerian universities with outstanding academic records.',
+    fullDescription: 'The Total/NNPC National Merit Scholarship Scheme is an annual educational programme designed to reward academic excellence among Nigerian undergraduates. The scholarship covers tuition, book allowance, and a monthly stipend.',
+    eligibility: [
+      'Must be a full-time student in any Nigerian university',
+      'Must be in 200 level or above',
+      'Minimum CGPA of 3.0 on a 5.0 scale',
+      'Must not be a beneficiary of another scholarship'
+    ],
+    documents: ['University ID Card', 'Academic Transcripts', 'JAMB Admission Letter', 'Passport Photograph'],
+    applicationLink: 'https://totalenergies.com.ng/community/education'
+  },
+  {
+    id: '12',
+    name: 'Dangote Foundation Scholarship',
+    sponsor: 'Aliko Dangote Foundation',
+    location: 'Nigeria',
+    eligibleLevel: ['Undergraduate'],
+    deadline: '2026-07-15',
+    description: 'Scholarship for students from Kogi, Kwara, and other states to study at selected Nigerian universities.',
+    fullDescription: 'The Dangote Foundation Scholarship offers financial assistance to indigent but brilliant students from underserved communities across Nigeria, with priority to students from host communities of Dangote Group operations.',
+    eligibility: [
+      'Must be a citizen of Nigeria',
+      'Must be from one of the designated states',
+      'Must have CGPA of 3.0 and above',
+      'Demonstrated financial need'
+    ],
+    documents: ['Indigene Certificate', 'Admission Letter', 'Academic Transcript', 'Passport Photograph'],
+    applicationLink: 'https://www.dangote.com/foundation/'
+  },
+  {
+    id: '13',
+    name: 'NNPC/SEPLAT JV National Scholarship',
+    sponsor: 'NNPC/SEPLAT Joint Venture',
+    location: 'Nigeria',
+    eligibleLevel: ['Undergraduate'],
+    deadline: '2026-08-01',
+    description: 'Scholarship for students in Nigerian public universities specialising in Engineering and Geosciences.',
+    fullDescription: 'The scheme provides financial support to students in Engineering and Geosciences in order to build local capacity in the Nigerian oil and gas industry.',
+    eligibility: [
+      'Must be in 200 level or above',
+      'Must study Engineering or Geosciences',
+      'Minimum CGPA of 3.5 on a 5.0 scale',
+      'Must be a Nigerian citizen'
+    ],
+    documents: ['Admission Letter', 'University ID', 'Academic Transcript', 'Certificate of Origin'],
+    applicationLink: 'https://seplatpetroleum.com/sustainability/'
+  },
+  {
+    id: '14',
+    name: 'African Union / DAAD Postgraduate Scholarship',
+    sponsor: 'African Union Commission / DAAD',
+    location: 'International',
+    eligibleLevel: ['Masters'],
+    deadline: '2026-09-30',
+    description: 'Fully-funded scholarship for African students to study Master's programmes at Pan African University institutes.',
+    fullDescription: 'The African Union Commission in collaboration with DAAD offers fully-funded Master's degree scholarships at various Pan African University institutes across Africa to build the next generation of African leaders and scientists.',
+    eligibility: [
+      'Must be a citizen of an African Union member state',
+      'Must hold a relevant Bachelor's degree with upper second class',
+      'Must be under 35 years of age',
+    'Strong motivation for research'
+    ],
+  documents: ['Bachelor Degree Certificate', 'Transcripts', 'Two Reference Letters', 'Research Proposal'],
+  applicationLink: 'https://pau-au.africa/'
+  },
+{
+  id: '15',
+    name: 'UBA Foundation National Essay Competition',
+      sponsor: 'United Bank for Africa Foundation',
+        location: 'Nigeria',
+          eligibleLevel: ['Secondary'],
+            deadline: '2026-03-31',
+              description: 'Annual essay competition for senior secondary school students across Africa with cash prizes and educational grants.',
+                fullDescription: 'The UBA Foundation National Essay Competition is an annual Africa-wide writing competition for senior secondary school students. Winners receive educational grants, mentorship, and other prizes.',
+                  eligibility: [
+                    'Must be a senior secondary school student (SS1-SS3)',
+                    'Must be enrolled in a public or private secondary school in Nigeria',
+                    'Must be nominated by their school'
+                  ],
+                    documents: ['School ID', 'Letter of Nomination', 'Essay Submission', 'Parent Consent Form'],
+                      applicationLink: 'https://www.ubafoundation.com/'
+},
+{
+  id: '16',
+    name: 'Mastercard Foundation Scholars Program',
+      sponsor: 'Mastercard Foundation',
+        location: 'International',
+          eligibleLevel: ['Undergraduate', 'Masters'],
+            deadline: '2026-10-15',
+              description: 'Fully-funded scholarships for academically talented yet economically disadvantaged African students.',
+                fullDescription: 'The Mastercard Foundation Scholars Program provides comprehensive scholarships to students from Sub-Saharan Africa who are academically talented but financially challenged, enabling them to attend world-class universities.',
+                  eligibility: [
+                    'Must be a citizen of a Sub-Saharan African country',
+                    'Demonstrated academic talent',
+                    'Significant financial need',
+                    'Commitment to giving back to their community'
+                  ],
+                    documents: ['Academic Transcripts', 'Financial Need Statement', 'Personal Essay', 'Two Reference Letters'],
+                      applicationLink: 'https://mastercardfdn.org/all/scholars/'
+},
+{
+  id: '17',
+    name: 'Oando Foundation Scholarship',
+      sponsor: 'Oando Foundation',
+        location: 'Nigeria',
+          eligibleLevel: ['Undergraduate'],
+            deadline: '2026-06-20',
+              description: 'Supporting talented Nigerian students in Energy, Engineering, and Environmental Sciences.',
+                fullDescription: 'The Oando Foundation Scholarship is designed to increase the number of Nigerian students pursuing degrees in Energy, Engineering, and Environmental Sciences. The scholarship covers tuition and provides a stipend.',
+                  eligibility: [
+                    'Must be a Nigerian studying in a Nigerian university',
+                    'Must be in 200 level or above',
+                    'Studying Energy, Engineering, or Environmental Sciences',
+                    'Minimum CGPA of 3.0'
+                  ],
+                    documents: ['University ID', 'Admission Letter', 'Transcript', 'Personal Statement'],
+                      applicationLink: 'https://www.oandofoundation.org/'
+},
+{
+  id: '18',
+    name: 'African Leadership University Scholarship',
+      sponsor: 'African Leadership University',
+        location: 'International',
+          eligibleLevel: ['Undergraduate'],
+            deadline: '2026-04-30',
+              description: 'Need-based scholarships for young Africans to study at ALU campuses in Rwanda and Mauritius.',
+                fullDescription: 'ALU offers need-based scholarships covering up to 100% of tuition. The programme aims to develop the next generation of African leaders through a unique, mission-driven curriculum.',
+                  eligibility: [
+                    'Must be an African citizen between 17-25 years',
+                    'Completed secondary education',
+                    'Demonstrated leadership potential',
+                    'Proven financial need'
+                  ],
+                    documents: ['Secondary School Certificate', 'Personal Essay', 'Letter of Recommendation', 'Financial Aid Application'],
+                      applicationLink: 'https://www.alueducation.com/admissions/'
+},
+{
+  id: '19',
+    name: 'Zenith Bank Scholarship Scheme',
+      sponsor: 'Zenith Bank Plc',
+        location: 'Nigeria',
+          eligibleLevel: ['Undergraduate'],
+            deadline: '2026-05-15',
+              description: 'Merit-based scholarship for students in Nigerian universities with excellent academic performance.',
+                fullDescription: 'The Zenith Bank Scholarship Scheme is a CSR initiative designed to support meritorious students in Nigerian universities. The scheme provides financial assistance to students who demonstrate outstanding academic achievement.',
+                  eligibility: [
+                    'Must be a full-time undergraduate in any Nigerian university',
+                    'Minimum CGPA of 3.5 on a 5.0 scale',
+                    'Must not be receiving another scholarship',
+                    'Must be a Nigerian citizen'
+                  ],
+                    documents: ['University ID', 'Current Transcript', 'Admission Letter', 'Bank Statement'],
+                      applicationLink: 'https://www.zenithbank.com/csr/'
+},
+{
+  id: '20',
+    name: 'Fulbright Foreign Student Program',
+      sponsor: 'U.S. Department of State',
+        location: 'International',
+          eligibleLevel: ['Masters'],
+            deadline: '2026-02-28',
+              description: 'Prestigious scholarship for international students to pursue Master's degrees in the United States.',
+  fullDescription: 'The Fulbright Foreign Student Program enables graduate students, young professionals, and artists from abroad to study and conduct research in the United States. The program is funded by the U.S. government.',
+    eligibility: [
+      'Must hold a Bachelor's degree with strong academic record',
+  'Must be a citizen and resident of an eligible country',
+    'Sufficient proficiency in English',
+    'Must return home for at least two years after completion'
+    ],
+  documents: ['Bachelor Degree Certificate', 'Transcripts', 'Three Letters of Recommendation', 'Study Objective Essay', 'TOEFL Score'],
+    applicationLink: 'https://foreign.fulbrightonline.org/'
+}
 ];
