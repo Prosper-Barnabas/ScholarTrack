@@ -1,38 +1,47 @@
 import { useState, useMemo } from 'react';
-import type { Scholarship, StudentProfile, MatchResult } from './types';
+import type { Scholarship, MatchResult } from './types';
 import { MOCK_SCHOLARSHIPS } from './data';
-import { ProfileForm } from './components/ProfileForm';
+import { SignInModal } from './components/SignInModal';
 import { ScholarshipCard } from './components/ScholarshipCard';
 import { ScholarshipDetail } from './components/ScholarshipDetail';
 import { Button } from './components/Button';
-import { GraduationCap, Search, Sparkles, BookMarked, ArrowLeft, Target, Clock, ShieldCheck, Users, BookOpen, Globe, ChevronRight, Mail } from 'lucide-react';
+import { GraduationCap, Search, Sparkles, BookMarked, Target, Clock, ShieldCheck, Users, BookOpen, Globe, ChevronRight, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 function App() {
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [profile, setProfile] = useState<{ fullName: string; email: string } | null>(null);
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [selectedScholarship, setSelectedScholarship] = useState<Scholarship | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [isMatching, setIsMatching] = useState(false);
-  const [view, setView] = useState<'landing' | 'profile' | 'results' | 'saved'>('landing');
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [view, setView] = useState<'landing' | 'results' | 'saved'>('landing');
 
-  const handleProfileSubmit = async (data: StudentProfile) => {
+  const handleSignIn = (data: { fullName: string; email: string }) => {
     setProfile(data);
+    setShowSignIn(false);
     setIsMatching(true);
     setView('results');
 
-    // Simulate AI matching for now to ensure UI works
-    // In a real app, we'd call getScholarshipMatches(data, MOCK_SCHOLARSHIPS)
+    // Simulate AI matching
     setTimeout(() => {
       const mockMatches: MatchResult[] = MOCK_SCHOLARSHIPS.slice(0, 5).map((s, i) => ({
         scholarshipId: s.id,
         matchPercentage: 95 - i * 5,
         priority: i === 0 ? 'High Fit' : 'Moderate Fit',
-        reason: `Based on your ${data.fieldOfStudy} background and ${data.gpa} GPA, this is an excellent match.`
+        reason: `Based on your profile, this is an excellent match for you.`
       }));
       setMatches(mockMatches);
       setIsMatching(false);
     }, 2000);
+  };
+
+  const handleGetStarted = () => {
+    if (profile) {
+      setView('results');
+    } else {
+      setShowSignIn(true);
+    }
   };
 
   const toggleSave = (id: string) => {
@@ -77,12 +86,12 @@ function App() {
             {profile ? (
               <div
                 className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-academic-blue transition-colors hover:bg-academic-blue hover:text-white"
-                onClick={() => setView('profile')}
+                onClick={() => setView('results')}
               >
                 <span className="font-bold">{profile.fullName[0]}</span>
               </div>
             ) : (
-              <Button size="sm" className="md:px-6 md:py-3 md:text-base" onClick={() => setView('profile')}>Get Started</Button>
+              <Button size="sm" className="md:px-6 md:py-3 md:text-base" onClick={handleGetStarted}>Get Started</Button>
             )}
           </nav>
         </div>
@@ -107,7 +116,7 @@ function App() {
                   ScholarTrack connects Nigerian students with scholarships they actually qualify for — powered by intelligent matching, not endless searching.
                 </p>
                 <div className="flex flex-col gap-4 sm:flex-row">
-                  <Button size="lg" className="gap-2 px-8 py-5 text-base md:px-10 md:py-6 md:text-lg" onClick={() => setView('profile')}>
+                  <Button size="lg" className="gap-2 px-8 py-5 text-base md:px-10 md:py-6 md:text-lg" onClick={handleGetStarted}>
                     Get Started <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
@@ -169,31 +178,11 @@ function App() {
                 <p className="mb-8 max-w-lg text-lg text-slate-500">
                   Create your free profile in under 2 minutes. Get matched with scholarships tailored to your academic background.
                 </p>
-                <Button size="lg" className="gap-2 px-8 py-5 text-base md:px-12 md:py-6 md:text-lg" onClick={() => setView('profile')}>
+                <Button size="lg" className="gap-2 px-8 py-5 text-base md:px-12 md:py-6 md:text-lg" onClick={handleGetStarted}>
                   Create Your Profile <ChevronRight className="h-5 w-5" />
                 </Button>
               </div>
             </motion.section>
-          )}
-
-          {view === 'profile' && (
-            <motion.div
-              key="profile"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="mx-auto max-w-3xl"
-            >
-              <button
-                onClick={() => setView('landing')}
-                className="mb-8 flex items-center gap-2 font-semibold text-slate-500 hover:text-academic-blue"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to Home
-              </button>
-              <h2 className="mb-8 text-3xl font-bold">Complete Your Academic Profile</h2>
-              <ProfileForm onSubmit={handleProfileSubmit} initialData={profile} />
-            </motion.div>
           )}
 
           {view === 'results' && (
@@ -206,9 +195,8 @@ function App() {
               <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
                   <h2 className="text-3xl font-bold">Recommended for You</h2>
-                  <p className="mt-2 text-slate-500">Based on your academic profile and preferences</p>
+                  <p className="mt-2 text-slate-500">Top scholarships based on your profile</p>
                 </div>
-                <Button variant="outline" onClick={() => setView('profile')}>Edit Profile</Button>
               </div>
 
               {isMatching ? (
@@ -275,6 +263,16 @@ function App() {
           <ScholarshipDetail
             scholarship={selectedScholarship}
             onClose={() => setSelectedScholarship(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Sign In Modal */}
+      <AnimatePresence>
+        {showSignIn && (
+          <SignInModal
+            onSubmit={handleSignIn}
+            onClose={() => setShowSignIn(false)}
           />
         )}
       </AnimatePresence>
